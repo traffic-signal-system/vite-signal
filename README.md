@@ -2,6 +2,12 @@
 
 ## 创建项目
 
+基于地理信息的系统，由两个方面。本项目采用的开源项目
+
+- ArcGIS 、SuperMap、四维图新等收费公司开发维护的基础组件；
+
+- 开源： osm+geoserver+ openlayer / leaflet /mapbox组成基础组件
+
 ### 安装
 
 ```shell
