@@ -3,10 +3,6 @@
 import { ref, onMounted } from 'vue'
 import { Map, View } from 'ol'
 import Tile from 'ol/layer/Tile'
-import BaseTileLayer from '@arcgis/core/layers/BaseTileLayer'
-import Accessor from '@arcgis/core/core/Accessor'
-import layer from '@arcgis/core/layers/layer'
-import aMap from '@arcgis/core/Map'
 import OSM from 'ol/source/OSM'
 import XYZ from 'ol/source/XYZ'
 
@@ -63,18 +59,6 @@ onMounted(() => {
     <div id="popup" style="padding: 10px;background-color: white;"></div>
   </div>
 
-  <!-- <p>
-    Check out
-    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank"
-      >create-vue</a
-    >, the official Vue + Vite starter
-  </p>
-  <p>
-    Install
-    <a href="https://github.com/johnsoncodehk/volar" target="_blank">Volar</a>
-    in your IDE for a better DX
-  </p>
-  <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p> -->
 </template>
 
 <style scoped>
