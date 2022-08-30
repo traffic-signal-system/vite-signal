@@ -1,49 +1,88 @@
-// store.ts
-import { InjectionKey } from 'vue'
-import { createStore, Store } from 'vuex'
+import { resolve } from 'path'
+import { defineStore } from 'pinia'
+import { Names } from './store-name'
 
-// define your typings for the store state
-export interface State {
-  count: number,
-  isLogin: boolean,
-  userInfo:{
-    id:string,
-    openid:string,
-    mobile:string,
-    password:string,
-    nickname:string,
-    sex:number,
-    age:number,
-    avatar:string,
-    sign:string,
-    gmtCreate:string,
-    gmtModified:string,
-    isDisabled:boolean,
-    isDeleted:boolean
-  }
+type User = {
+  name: string,
+  age: number
 }
 
-// define injection key
-export const key: InjectionKey<Store<State>> = Symbol()
+// let result:User = {
+//   name:'fly',
+//   age:999
+// }
 
-export const store = createStore<State>({
-  state: {
-    count: 0,
-    isLogin: false,
-    userInfo:{
-      id:'string',
-      openid:'string',
-      mobile:'string',
-      password:'string',
-      nickname:'string',
-      sex:0,
-      age:0,
-      avatar:'string',
-      sign:'string',
-      gmtCreate:'string',
-      gmtModified:'string',
-      isDisabled:false,
-      isDeleted:false
+const Login = (): Promise<User> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        name: 'kaka',
+        age: 888
+      })
+    },2000)
+  })
+}
+export const useTestStore = defineStore(Names.TEST, {
+  state() {
+    return {
+      user: <User>{},
+      current: 1,
+      name: 'big one'
+    }
+  },
+  getters: {
+    newName ():string{
+      return `$- ${this.name}`
+    },
+    getUserAge():number{
+      return this.user.age
+    }
+  },
+  actions: {
+    setCurrent() {
+      this.current = 10198
+    },
+    async setUser() {
+      // this.user = result
+      const result = await Login()
+      this.user = result
+      this.setName('blibli')
+    },
+    setName(name:string){
+      this.name = name
+    }
+  }
+})
+
+
+export const useBaseStore = defineStore(Names.BASE, {
+  state() {
+    return {
+      user: <User>{},
+      current: 1,
+      name: 'big one'
+    }
+  },
+  getters: {
+    newName ():string{
+      return `$- ${this.name}`
+    },
+    getUserAge():number{
+      return this.user.age
+    }
+  },
+  actions: {
+    setCurrent() {
+      this.current = 10198
+    },
+    async setUser() {
+      // this.user = result
+      const result = await Login()
+      this.user = result
+      this.setName('base')
+    },
+    setName(name:string){
+      this.name = name
     }
   }
 })
