@@ -1,5 +1,7 @@
 <template>
   <AddSingalVue></AddSingalVue>
+  <el-button type="danger" class="display-topbar" @click="dialogShowSignal">Danger</el-button>
+  <SignalReportState ref="dialogShow"></SignalReportState>
   <div id="mapViewDiv" class="mapViewDiv">
     <div id="electric-police-topbar" class="electric-police-topbar">
       <button class="esri-widget--button esri-widget esri-interactive esri-icon-media "
@@ -57,59 +59,76 @@ import FeatureLayerView from "@arcgis/core/views/layers/FeatureLayerView";
 import Graphic from "@arcgis/core/Graphic";
 import signal from "../api/signal";
 import '@arcgis/core/assets/esri/themes/dark/main.css'
+import SignalReportState from "../components/SignalReportState.vue"
 
+const dialogShow = ref(null) as any
+const dialogShowSignal = (data:any) => {
+  //console.log(dialogShow)
+  if (dialogShow.value != null) {
+    //console.log(dialogShow)    报错但是可以使用
+    dialogShow.value.dialogShow(true)
+  }
 
+}
 //信号机图标
 const LIGHT = {
   type: "picture-marker",
   url: "http://localhost:3000/icon/traffic_light.svg",
   width: "32px",
   height: "32px"
-};
+} as any
 
 const measureThisAction = {
-  title: "Measure Length",
-  id: "measure-this",
+  title: "状态",
+  id: "traffic-this",
   image: "http://localhost:3000/icon/traffic_light.svg"
 };
 
 const collisionAction = {
-  title: "Measure Length",
-  id: "measure-this",
+  title: "冲突",
+  id: "collision-this",
   image: "http://localhost:3000/icon/collision.svg"
 };
 const phaseAction = {
-  title: "Measure Length",
-  id: "measure-this",
+  title: "相位",
+  id: "phase-this",
   image: "http://localhost:3000/icon/phase.svg"
 };
 const errorAction = {
-  title: "Measure Length",
-  id: "measure-this",
+  title: "故障",
+  id: "error-this",
   image: "http://localhost:3000/icon/error.svg"
 };
 const planAction = {
-  title: "Measure Length",
-  id: "measure-this",
+  title: "时基",
+  id: "plan-this",
   image: "http://localhost:3000/icon/plan.svg"
 };
 const relationAction = {
-  title: "Measure Length",
-  id: "measure-this",
+  title: "相邻",
+  id: "relation-this",
   image: "http://localhost:3000/icon/relation.svg"
 };
 const scheduleAction = {
-  title: "Measure Length",
-  id: "measure-this",
+  title: "时段",
+  id: "schedule-this",
   image: "http://localhost:3000/icon/schedule.svg"
 };
 const stageAction = {
-  title: "Measure Length",
-  id: "measure-this",
+  title: "阶段",
+  id: "stage-this",
   image: "http://localhost:3000/icon/stage.svg"
 };
-onMounted(() => {
+const patternAction = {
+  title: "配时",
+  id: "stage-this",
+  image: "http://localhost:3000/icon/pattern.svg"
+};
 
+
+
+
+onMounted(() => {
   let weblayer = new WebTileLayer({
     urlTemplate: 'http://localhost:3000/api/tile/{level}/{col}/{row}.png',
     subDomains: ['a', 'b', 'c', 'd']
@@ -153,7 +172,6 @@ onMounted(() => {
     }
   ]);
 
-
   //信号机客户端图层
   let signalGraphicsLayer = new GraphicsLayer({
     title: "信号机图层",
@@ -177,13 +195,35 @@ onMounted(() => {
    *     地图上点击 删除按钮事件，将保存在selectedGraphic对象进行删除操作，更新GraphicLayers图层
    */
   let selectedGraphic;
+
+  mapView.on("pointer-move", function (evt) {
+    // 向右移五个像素，以防无法取消菜单
+    // console.log(evt.x + " : " + evt.y)
+  });
+  mapView.on("pointer-down", function (event) {
+    mapView.hitTest(event).then(function (response) {
+      if (response.results[0]) {
+        var graphic = response.results[0];
+        // 可通过graphic 的属性判断点击的类型
+        // 右键
+        if (event.button === 2) {
+          //toggleMenu(rightMenu);
+          console.log("右键 DOWN")
+        }
+        // 鼠标左键
+        else if (event.button === 0) {
+          console.log("左键 DOWN")
+          console.log(graphic)
+        }
+      }
+    });
+  });
   /**
    * //地图点击响应事件，点击节点后弹出相应节点的操作界面
    * ，如信号机的界面，包括手控界面、相位配置、时基等
    * 如视频监控的界面，包括监控显示界面、监控操作界面
    *
    */
-
   mapView.on("click", function (event) {
     //高亮显示的元素进行删除高亮
     // if(highlight){
@@ -199,7 +239,7 @@ onMounted(() => {
       console.log(res)
       if (res.results.length >= 1) {
         //TODO 后期可以对叠加的Graphic 点击事件处理，目前只取得点击Graphic的第一个
-        var graphic = res.results[0];
+        let graphic = res.results[0];
         console.log(graphic)
         //console.log(marker.graphic.attributes); // 获取捆绑的属性
         // var graphic = res.results[0].graphic;
@@ -243,13 +283,31 @@ onMounted(() => {
     });
   });
 
-
+  /**
+       * 节点点击，导出框中，项目按钮点击事件
+       * 主要 内容 ：卡口；电子警察；视频节点；绿波等
+       * Event handler that fires each time an action is clicked.
+       * Execute the measureThis() function if the measure-this action is clicked
+       */
+  mapView.popup.on("trigger-action", function (event) {
+    if (event.action.id === "traffic-this") {
+      //信号机节点操作开始
+      console.log("traffic-this");
+      var graphic = mapView.popup.selectedFeature;
+      var geometry = mapView.popup.selectedFeature.geometry;
+      dialogShowSignal(graphic)
+     // signalReportState(graphic);
+    }
+  });
 
   initSignal(signalGraphicsLayer);
+
 });
-
-function initSignal(signalGraphicsLayer) {
-
+/**
+ * 创建信号节点图层，并初始化图层上的节点
+ * @param signalGraphicsLayer 
+ */
+function initSignal(signalGraphicsLayer: GraphicsLayer) {
   let res = signal.findOnline()
     .then((res: any) => {
       console.log(res)
@@ -264,7 +322,7 @@ function initSignal(signalGraphicsLayer) {
             longitude: log,
             latitude: lat,
             z: 15
-          };
+          } as any;
 
           // Create an object for storing attributes related to the line
           let lineAtt = {
@@ -281,10 +339,10 @@ function initSignal(signalGraphicsLayer) {
             "online": v.online,
             "signalControllerId": v.signalControllerId
           };
-        
+
           const template = {
             // autocasts as new PopupTemplate()
-            title: "Trail run",
+            title: "信号机",
             content: [
               {
                 type: "fields",
@@ -310,21 +368,21 @@ function initSignal(signalGraphicsLayer) {
                 ]
               }, {
                 type: "text",
-                text: "sdfasdfasdfasdfasdfasdf"
+                text: "信号机详细参数"
               }
             ],
-            actions: [measureThisAction,collisionAction,phaseAction,errorAction,relationAction,planAction,scheduleAction,stageAction]
-          };
+            actions: [measureThisAction, collisionAction, phaseAction, errorAction, relationAction, planAction, scheduleAction, stageAction, patternAction]
+          } as any ;
           let pointGraphic = new Graphic({
             geometry: point,
             symbol: LIGHT,
             attributes: lineAtt,
-            color: [226, 119, 40],
-            outline: {
-              // autocasts as new SimpleLineSymbol()
-              color: [255, 255, 255],
-              width: 2
-            },
+            // color: [226, 119, 40],
+            // outline: {
+            //   // autocasts as new SimpleLineSymbol()
+            //   color: [255, 255, 255],
+            //   width: 2
+            // },
             popupTemplate: template,
 
           })
@@ -336,6 +394,7 @@ function initSignal(signalGraphicsLayer) {
       }
     });
 }
+
 </script>
 
 <style scoped>
@@ -404,11 +463,12 @@ body,
   position: absolute;
   top: 15px;
   left: 55px;
-  margin-left: 400px;
+  margin-left: 480px;
   padding: 0px;
   align-items: center;
   display: flex;
   flex-flow: row nowrap;
+  z-index: 1001;
 }
 
 .electric-police-topbar {
